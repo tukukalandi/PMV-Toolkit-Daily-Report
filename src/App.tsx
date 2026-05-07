@@ -47,8 +47,24 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indiapost-red"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-6"
+        >
+          <div className="bg-indiapost-red p-4 rounded-2xl shadow-xl shadow-indiapost-red/20 animate-pulse">
+            <Package className="w-12 h-12 text-indiapost-yellow" />
+          </div>
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-none">PMV Toolkit</h1>
+            <div className="flex justify-center gap-1.5 h-1">
+              <div className="w-8 h-full bg-indiapost-red rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-8 h-full bg-indiapost-yellow rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-8 h-full bg-indiapost-red rounded-full animate-bounce" />
+            </div>
+          </div>
+        </motion.div>
       </div>
     );
   }

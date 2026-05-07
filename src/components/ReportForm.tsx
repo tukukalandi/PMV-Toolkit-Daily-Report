@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { toast } from 'sonner';
 import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
+import { formatDateToDMY } from '../lib/dateUtils';
 import { collection, setDoc, doc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { ClipboardList, Send, Loader2, Check, ChevronsUpDown, Search, Package, RefreshCw } from 'lucide-react';
 import { OFFICES } from '../constants/offices';
@@ -61,7 +62,7 @@ export default function ReportForm() {
           officeName: office,
           openingBalance: lastReport.articlesPending.toString() 
         }));
-        toast.info(`Opening balance auto-filled from last report (${lastReport.reportDate})`);
+        toast.info(`Opening balance auto-filled from last report (${formatDateToDMY(lastReport.reportDate)})`);
       } else {
         setFormData(prev => ({ ...prev, officeName: office, openingBalance: '0' }));
       }
@@ -232,7 +233,12 @@ export default function ReportForm() {
                 </Popover>
               </div>
               <div className="space-y-3">
-                <Label htmlFor="reportDate" className="text-sm font-semibold text-slate-700">Report Date</Label>
+                <div className="flex justify-between items-end">
+                  <Label htmlFor="reportDate" className="text-sm font-semibold text-slate-700">Report Date</Label>
+                  <span className="text-[10px] font-bold text-indiapost-red bg-red-50 px-2 py-0.5 rounded border border-red-100">
+                    {formatDateToDMY(formData.reportDate)}
+                  </span>
+                </div>
                 <Input
                   id="reportDate"
                   name="reportDate"
@@ -240,7 +246,7 @@ export default function ReportForm() {
                   value={formData.reportDate}
                   onChange={handleChange}
                   required
-                  className="border-slate-300 focus-visible:ring-indiapost-red"
+                  className="border-slate-300 focus-visible:ring-indiapost-red font-medium"
                 />
               </div>
             </div>

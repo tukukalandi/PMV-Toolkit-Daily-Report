@@ -13,6 +13,7 @@ import { Download, Search, Calendar, Trash2, Edit2, CheckCircle2, XCircle, Alert
 import { toast } from 'sonner';
 import { OFFICES } from '../constants/offices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { formatDateToDMY } from '../lib/dateUtils';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -122,7 +123,7 @@ export default function ReportList() {
     }
 
     const ws = XLSX.utils.json_to_sheet(type === 'reports' ? reports.map(r => ({
-      Date: r.reportDate,
+      Date: formatDateToDMY(r.reportDate),
       Office: r.officeName,
       'Opening Balance': r.openingBalance,
       'Articles Received': r.articlesReceived,
@@ -139,13 +140,16 @@ export default function ReportList() {
 
   const exportToPDF = (type: 'reports' | 'pending') => {
     const doc = new jsPDF();
-    const title = type === 'reports' ? `PMV Daily Report - ${selectedDate}` : `Pending Reports List - ${selectedDate}`;
+    const formattedDate = formatDateToDMY(selectedDate);
+    const title = type === 'reports' ? `PMV Daily Report - ${formattedDate}` : `Pending Reports List - ${formattedDate}`;
     
     doc.setFontSize(18);
     doc.text(title, 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    const now = new Date();
+    const genDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+    doc.text(`Generated on: ${genDate}`, 14, 30);
 
     if (type === 'reports') {
       autoTable(doc, {
@@ -184,7 +188,7 @@ export default function ReportList() {
     const csvRows = [
       headers.join(','),
       ...reports.map(r => [
-        r.reportDate,
+        formatDateToDMY(r.reportDate),
         `"${r.officeName}"`,
         r.openingBalance,
         r.articlesReceived,
@@ -219,16 +223,19 @@ export default function ReportList() {
         </div>
         
         <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-          <div className="relative flex-1 md:flex-initial">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            <Input 
-              type="date" 
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="pl-10 pr-4 h-11 border-slate-200 focus:ring-indiapost-red rounded-xl font-medium"
-            />
+          <div className="flex flex-col gap-1.5 min-w-[200px]">
+            <Label className="text-[10px] uppercase tracking-widest font-bold text-slate-400 ml-1">Viewing Date: <span className="text-indiapost-red">{formatDateToDMY(selectedDate)}</span></Label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <Input 
+                type="date" 
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="pl-10 pr-4 h-11 border-slate-200 focus:ring-indiapost-red rounded-xl font-medium w-full"
+              />
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-end">
             <Button 
               onClick={() => exportToExcel('reports')}
               variant="outline" 
@@ -473,7 +480,7 @@ export default function ReportList() {
           <div className="bg-slate-900 px-6 py-4 flex justify-between items-center">
             <div>
               <DialogTitle className="text-white text-xl font-bold">Edit Post Report</DialogTitle>
-              <DialogDescription className="text-slate-400 text-xs uppercase tracking-widest mt-0.5">{editingReport?.officeName} • {editingReport?.reportDate}</DialogDescription>
+              <DialogDescription className="text-slate-400 text-xs uppercase tracking-widest mt-0.5">{editingReport?.officeName} • {editingReport ? formatDateToDMY(editingReport.reportDate) : ''}</DialogDescription>
             </div>
             <Button 
               variant="ghost" 

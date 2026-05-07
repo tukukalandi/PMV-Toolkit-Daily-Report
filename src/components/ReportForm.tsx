@@ -7,8 +7,8 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { toast } from 'sonner';
 import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ClipboardList, Send, Loader2, Check, ChevronsUpDown, Search, Package } from 'lucide-react';
+import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { ClipboardList, Send, Loader2, Check, ChevronsUpDown, Search, Package, RefreshCw } from 'lucide-react';
 import { OFFICES } from '../constants/offices';
 import {
   Command,
@@ -27,6 +27,7 @@ import { cn } from "../lib/utils";
 
 export default function ReportForm() {
   const [loading, setLoading] = useState(false);
+  const [fetchingBalance, setFetchingBalance] = useState(false);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     officeName: '',
@@ -42,9 +43,39 @@ export default function ReportForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const fetchLatestBalance = async (office: string) => {
+    setFetchingBalance(true);
+    try {
+      const q = query(
+        collection(db, 'reports'),
+        where('officeName', '==', office),
+        orderBy('reportDate', 'desc'),
+        limit(1)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const lastReport = querySnapshot.docs[0].data();
+        setFormData(prev => ({ 
+          ...prev, 
+          officeName: office,
+          openingBalance: lastReport.articlesPending.toString() 
+        }));
+        toast.info(`Opening balance auto-filled from last report (${lastReport.reportDate})`);
+      } else {
+        setFormData(prev => ({ ...prev, officeName: office, openingBalance: '0' }));
+      }
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      setFormData(prev => ({ ...prev, officeName: office }));
+    } finally {
+      setFetchingBalance(false);
+    }
+  };
+
   const handleOfficeSelect = (currentValue: string) => {
-    setFormData(prev => ({ ...prev, officeName: currentValue }));
     setOpen(false);
+    fetchLatestBalance(currentValue);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -188,19 +219,26 @@ export default function ReportForm() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-3">
+              <div className="space-y-3 relative">
                 <Label htmlFor="openingBalance" className="text-sm font-semibold text-slate-700">Opening Balance</Label>
-                <Input
-                  id="openingBalance"
-                  name="openingBalance"
-                  type="number"
-                  min="0"
-                  value={formData.openingBalance}
-                  onChange={handleChange}
-                  placeholder="0"
-                  required
-                  className="border-slate-300 focus-visible:ring-indiapost-red"
-                />
+                <div className="relative">
+                  <Input
+                    id="openingBalance"
+                    name="openingBalance"
+                    type="number"
+                    min="0"
+                    value={formData.openingBalance}
+                    onChange={handleChange}
+                    placeholder="0"
+                    required
+                    className="border-slate-300 focus-visible:ring-indiapost-red pr-10"
+                  />
+                  {fetchingBalance && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <RefreshCw className="w-4 h-4 text-indiapost-red animate-spin" />
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="space-y-3">
                 <Label htmlFor="articlesReceived" className="text-sm font-semibold text-slate-700">Articles Received</Label>
@@ -246,14 +284,15 @@ export default function ReportForm() {
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="pendingReason" className="text-sm font-semibold text-slate-700">Reason for Pending (if any)</Label>
+              <Label htmlFor="pendingReason" className="text-sm font-semibold text-slate-700">Reason for Pending / Daily Remarks</Label>
               <Textarea
                 id="pendingReason"
                 name="pendingReason"
                 value={formData.pendingReason}
                 onChange={handleChange}
-                placeholder="Details for non-delivery..."
+                placeholder="Please enter daily remarks or reason for pending articles..."
                 className="min-h-[120px] border-slate-300 focus-visible:ring-indiapost-red resize-none"
+                required
               />
             </div>
 

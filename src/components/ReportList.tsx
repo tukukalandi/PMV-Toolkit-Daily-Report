@@ -525,21 +525,16 @@ export default function ReportList() {
                 </div>
               </div>
 
-              {editingReport.articlesPending > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="space-y-2"
-                >
-                  <Label className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Reason for Pending</Label>
-                  <Textarea 
-                    value={editingReport.pendingReason || ''}
-                    onChange={(e) => setEditingReport({ ...editingReport, pendingReason: e.target.value })}
-                    className="bg-white border-slate-200 min-h-[100px] resize-none"
-                    placeholder="Enter short explanation..."
-                  />
-                </motion.div>
-              )}
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Reason for Pending / Daily Remarks</Label>
+                <Textarea 
+                  value={editingReport.pendingReason || ''}
+                  onChange={(e) => setEditingReport({ ...editingReport, pendingReason: e.target.value })}
+                  className="bg-white border-slate-200 min-h-[100px] resize-none"
+                  placeholder="Enter daily remarks or reason for pending articles..."
+                  required
+                />
+              </div>
 
               <div className="flex justify-end gap-3 pt-4">
                 <Button 

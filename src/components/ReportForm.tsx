@@ -152,9 +152,9 @@ export default function ReportForm() {
                       <CommandList>
                         <CommandEmpty>No office found.</CommandEmpty>
                         <CommandGroup>
-                          {OFFICES.map((office) => (
+                          {OFFICES.map((office, index) => (
                             <CommandItem
-                              key={office}
+                              key={`${office}-${index}`}
                               value={office}
                               onSelect={handleOfficeSelect}
                             >

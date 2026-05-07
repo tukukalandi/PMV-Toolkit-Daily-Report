@@ -9,10 +9,13 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Download, Search, Calendar, Trash2, Edit2, CheckCircle2, XCircle, AlertCircle, RefreshCw, X, Loader2 } from 'lucide-react';
+import { Download, Search, Calendar, Trash2, Edit2, CheckCircle2, XCircle, AlertCircle, RefreshCw, X, Loader2, FileSpreadsheet, FileText as FilePdf } from 'lucide-react';
 import { toast } from 'sonner';
 import { OFFICES } from '../constants/offices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {
   Dialog,
   DialogContent,
@@ -105,6 +108,66 @@ export default function ReportList() {
     }
   };
 
+  const exportToExcel = (type: 'reports' | 'pending') => {
+    const data = type === 'reports' ? reports : stats.pendingOffices.map(o => ({ Office: o, Status: 'Pending' }));
+    if (data.length === 0) {
+      toast.error(`No ${type} to export`);
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(type === 'reports' ? reports.map(r => ({
+      Date: r.reportDate,
+      Office: r.officeName,
+      'Opening Balance': r.openingBalance,
+      'Articles Received': r.articlesReceived,
+      'Articles Delivered': r.articlesDelivered,
+      'Articles Pending': r.articlesPending,
+      'Reason': r.pendingReason || ''
+    })) : data);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, type === 'reports' ? "Daily Submissions" : "Pending Offices");
+    XLSX.writeFile(wb, `PMV_${type}_${selectedDate}.xlsx`);
+    toast.success(`${type === 'reports' ? 'Submissions' : 'Pending list'} exported to Excel`);
+  };
+
+  const exportToPDF = (type: 'reports' | 'pending') => {
+    const doc = new jsPDF();
+    const title = type === 'reports' ? `PMV Daily Report - ${selectedDate}` : `Pending Reports List - ${selectedDate}`;
+    
+    doc.setFontSize(18);
+    doc.text(title, 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+
+    if (type === 'reports') {
+      autoTable(doc, {
+        startY: 35,
+        head: [['Office', 'Opening', 'Received', 'Delivered', 'Pending', 'Reason']],
+        body: reports.map(r => [
+          r.officeName,
+          r.openingBalance,
+          r.articlesReceived,
+          r.articlesDelivered,
+          r.articlesPending,
+          r.pendingReason || '-'
+        ]),
+        headStyles: { fillColor: [204, 0, 0] }, // India Post Red
+      });
+    } else {
+      autoTable(doc, {
+        startY: 35,
+        head: [['#', 'Office Name', 'Status']],
+        body: stats.pendingOffices.map((o, i) => [i + 1, o, 'Pending']),
+        headStyles: { fillColor: [204, 0, 0] },
+      });
+    }
+
+    doc.save(`PMV_${type}_${selectedDate}.pdf`);
+    toast.success(`${type === 'reports' ? 'Submissions' : 'Pending list'} exported to PDF`);
+  };
+
   const exportToCSV = () => {
     if (reports.length === 0) {
       toast.error('No data to export for this date');
@@ -159,14 +222,35 @@ export default function ReportList() {
               className="pl-10 pr-4 h-11 border-slate-200 focus:ring-indiapost-red rounded-xl font-medium"
             />
           </div>
-          <Button 
-            onClick={exportToCSV}
-            variant="outline" 
-            className="h-11 border-indiapost-red text-indiapost-red hover:bg-indiapost-red hover:text-white transition-all gap-2 font-bold px-6 border-2 rounded-xl"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export CSV</span>
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => exportToExcel('reports')}
+              variant="outline" 
+              className="h-11 border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all gap-2 font-bold px-4 border-2 rounded-xl"
+              title="Download Excel"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span className="hidden lg:inline">Excel</span>
+            </Button>
+            <Button 
+              onClick={() => exportToPDF('reports')}
+              variant="outline" 
+              className="h-11 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all gap-2 font-bold px-4 border-2 rounded-xl"
+              title="Download PDF"
+            >
+              <FilePdf className="w-4 h-4" />
+              <span className="hidden lg:inline">PDF</span>
+            </Button>
+            <Button 
+              onClick={exportToCSV}
+              variant="outline" 
+              className="h-11 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white transition-all gap-2 font-bold px-4 border-2 rounded-xl"
+              title="Download CSV"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden lg:inline">CSV</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -231,7 +315,7 @@ export default function ReportList() {
         </TabsList>
 
         <AnimatePresence mode="wait">
-          <TabsContent value="reports" className="mt-0">
+          <TabsContent value="reports" key="reports-content" className="mt-0">
             <Card className="border-slate-200 overflow-hidden shadow-lg border-2">
               <div className="overflow-x-auto">
                 <Table>
@@ -308,7 +392,27 @@ export default function ReportList() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="pending" className="mt-0">
+          <TabsContent value="pending" key="pending-content" className="mt-0">
+            <div className="flex justify-end gap-2 mb-4">
+              <Button 
+                onClick={() => exportToExcel('pending')}
+                size="sm"
+                variant="outline" 
+                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white gap-2 font-bold"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                Excel
+              </Button>
+              <Button 
+                onClick={() => exportToPDF('pending')}
+                size="sm"
+                variant="outline" 
+                className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white gap-2 font-bold"
+              >
+                <FilePdf className="w-3.5 h-3.5" />
+                PDF
+              </Button>
+            </div>
             <Card className="border-slate-200 overflow-hidden shadow-lg border-2">
               <div className="overflow-x-auto">
                 <Table>
@@ -333,8 +437,8 @@ export default function ReportList() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      stats.pendingOffices.map((office) => (
-                        <TableRow key={office} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0">
+                      stats.pendingOffices.map((office, index) => (
+                        <TableRow key={`pending-${office}-${index}`} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0">
                           <TableCell className="font-bold text-slate-700 pl-6">{office}</TableCell>
                           <TableCell>
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700">

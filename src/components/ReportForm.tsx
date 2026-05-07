@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { toast } from 'sonner';
 import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, setDoc, doc, serverTimestamp, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { ClipboardList, Send, Loader2, Check, ChevronsUpDown, Search, Package, RefreshCw } from 'lucide-react';
 import { OFFICES } from '../constants/offices';
 import {
@@ -100,7 +100,27 @@ export default function ReportForm() {
         return;
       }
 
-      await addDoc(collection(db, path), {
+      // Check if report already exists for this office and date
+      const q = query(
+        collection(db, path),
+        where('officeName', '==', formData.officeName),
+        where('reportDate', '==', formData.reportDate),
+        limit(1)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        toast.error(`A report for ${formData.officeName} on ${formData.reportDate} already exists. Please contact admin if you need to delete or update it.`);
+        setLoading(false);
+        return;
+      }
+
+      // Generate a unique ID to prevent race conditions at DB level
+      // format: officeName_YYYY-MM-DD (sanitized)
+      const sanitizedOffice = formData.officeName.replace(/[^a-zA-Z0-9]/g, '_');
+      const uniqueId = `${sanitizedOffice}_${formData.reportDate}`;
+
+      await setDoc(doc(db, path, uniqueId), {
         officeName: formData.officeName,
         openingBalance,
         articlesReceived,
@@ -122,7 +142,7 @@ export default function ReportForm() {
         reportDate: new Date().toISOString().split('T')[0],
       });
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, path);
+      handleFirestoreError(error, OperationType.WRITE, path);
     } finally {
       setLoading(false);
     }

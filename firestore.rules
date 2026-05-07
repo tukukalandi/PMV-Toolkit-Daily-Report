@@ -44,7 +44,7 @@ service cloud.firestore {
       
       allow read, list: if isAdmin();
 
-      allow delete: if isAdmin();
+      allow update, delete: if isAdmin();
     }
   }
 }

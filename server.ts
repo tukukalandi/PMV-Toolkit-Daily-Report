@@ -5,34 +5,11 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const app = express();
-app.use(express.json());
-
-// API Route for Google Sheets Sync via Apps Script
-app.post("/api/sync-to-sheet", async (req, res) => {
-  try {
-    const webappUrl = process.env.GOOGLE_SHEET_WEBAPP_URL;
-
-    if (!webappUrl) {
-      throw new Error("GOOGLE_SHEET_WEBAPP_URL is not configured");
-    }
-
-    const response = await fetch(webappUrl, {
-      method: "POST",
-      body: JSON.stringify(req.body),
-      headers: { "Content-Type": "application/json" },
-    });
-
-    const result = await response.json();
-    res.json(result);
-  } catch (error) {
-    console.error("Sheets Sync Error:", error);
-    res.status(500).json({ error: error instanceof Error ? error.message : "Failed to sync to sheets" });
-  }
-});
-
 async function startServer() {
+  const app = express();
   const PORT = 3000;
+
+  app.use(express.json());
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
@@ -49,13 +26,9 @@ async function startServer() {
     });
   }
 
-  if (!process.env.VERCEL) {
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  }
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 }
 
 startServer();
-
-export default app;

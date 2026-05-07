@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
 import { toast } from 'sonner';
-import { db, auth, handleFirestoreError, OperationType } from '@/lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ClipboardList, Send, Loader2, Check, ChevronsUpDown, Search, Package } from 'lucide-react';
-import { OFFICES } from '@/constants/offices';
+import { OFFICES } from '../constants/offices';
 import {
   Command,
   CommandEmpty,
@@ -17,13 +17,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "./ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+} from "./ui/popover";
+import { cn } from "../lib/utils";
 
 export default function ReportForm() {
   const [loading, setLoading] = useState(false);
@@ -84,24 +84,6 @@ export default function ReportForm() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-
-      // Sync to Google Sheets via Backend
-      try {
-        await fetch('/api/sync-to-sheet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...formData,
-            openingBalance,
-            articlesReceived,
-            articlesDelivered,
-            articlesPending,
-          }),
-        });
-      } catch (sheetError) {
-        console.error('Sheet Sync Failed (Non-critical):', sheetError);
-        // We don't block the UI if sheet sync fails, as Firestore save succeeded
-      }
 
       toast.success('Report submitted successfully!');
       setFormData({

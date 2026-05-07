@@ -487,7 +487,11 @@ export default function ReportList() {
                   <Input 
                     type="number"
                     value={editingReport.openingBalance}
-                    onChange={(e) => setEditingReport({ ...editingReport, openingBalance: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => {
+                      const opening = parseInt(e.target.value) || 0;
+                      const pending = opening + editingReport.articlesReceived - editingReport.articlesDelivered;
+                      setEditingReport({ ...editingReport, openingBalance: opening, articlesPending: pending });
+                    }}
                     className="bg-white border-slate-200 h-10 font-mono"
                   />
                 </div>

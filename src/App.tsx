@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { auth, googleProvider, signInWithPopup, signOut } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from './components/ui/sonner';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogIn, LogOut, FileText, History, Package } from 'lucide-react';

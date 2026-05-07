@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "Report": {
+      "title": "Daily PMV Toolkit Report",
+      "description": "A daily report submission from an office regarding article delivery.",
+      "type": "object",
+      "properties": {
+        "officeName": {
+          "type": "string",
+          "description": "Name of the Office"
+        },
+        "openingBalance": {
+          "type": "number",
+          "description": "Opening Balance of articles"
+        },
+        "articlesReceived": {
+          "type": "number",
+          "description": "Number of articles received for delivery"
+        },
+        "articlesDelivered": {
+          "type": "number",
+          "description": "Number of articles delivered"
+        },
+        "articlesPending": {
+          "type": "number",
+          "description": "Number of articles pending for delivery"
+        },
+        "pendingReason": {
+          "type": "string",
+          "description": "Reason for pending articles"
+        },
+        "reportDate": {
+          "type": "string",
+          "format": "date",
+          "description": "The date this report refers to"
+        },
+        "userId": {
+          "type": "string",
+          "description": "ID of the user who submitted the report"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "officeName",
+        "openingBalance",
+        "articlesReceived",
+        "articlesDelivered",
+        "articlesPending",
+        "reportDate",
+        "userId",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "reports": {
+      "schema": "Report",
+      "description": "Collection of daily PMV toolkit reports"
+    }
+  }
+}

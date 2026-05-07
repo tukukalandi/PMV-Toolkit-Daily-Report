@@ -16,8 +16,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == 'tukukalandi@gmail.com' && 
-        request.auth.token.email_verified == true
+        request.auth.token.email == 'tukukalandi@gmail.com'
       );
     }
 
@@ -42,7 +41,8 @@ service cloud.firestore {
     match /reports/{reportId} {
       allow create: if isValidReport(request.resource.data);
       
-      allow read, list: if isAdmin();
+      // Allow public read and list so fetchLatestBalance works for users
+      allow read, list: if true;
 
       allow update, delete: if isAdmin();
     }

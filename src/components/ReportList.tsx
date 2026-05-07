@@ -90,6 +90,12 @@ export default function ReportList() {
 
   const handleEditSave = async () => {
     if (!editingReport) return;
+
+    if (editingReport.articlesPending > 0 && !editingReport.pendingReason?.trim()) {
+      toast.error('Please provide a reason for the pending articles.');
+      return;
+    }
+
     setEditLoading(true);
 
     try {
@@ -536,7 +542,6 @@ export default function ReportList() {
                   onChange={(e) => setEditingReport({ ...editingReport, pendingReason: e.target.value })}
                   className="bg-white border-slate-200 min-h-[100px] resize-none"
                   placeholder="Enter daily remarks or reason for pending articles..."
-                  required
                 />
               </div>
 

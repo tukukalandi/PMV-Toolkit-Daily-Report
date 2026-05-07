@@ -100,6 +100,13 @@ export default function ReportForm() {
         return;
       }
 
+      // Logic check for pending reason
+      if (articlesPending > 0 && !formData.pendingReason.trim()) {
+        toast.error('Please provide a reason for the pending articles.');
+        setLoading(false);
+        return;
+      }
+
       // Check if report already exists for this office and date
       const q = query(
         collection(db, path),
@@ -312,7 +319,6 @@ export default function ReportForm() {
                 onChange={handleChange}
                 placeholder="Please enter daily remarks or reason for pending articles..."
                 className="min-h-[120px] border-slate-300 focus-visible:ring-indiapost-red resize-none"
-                required
               />
             </div>
 

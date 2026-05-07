@@ -95,7 +95,7 @@ export default function App() {
               className="border-indiapost-red text-indiapost-red hover:bg-indiapost-red hover:text-white gap-2 transition-all font-bold"
             >
               <LogIn className="w-4 h-4" />
-              Admin Portal
+              Administrator Login
             </Button>
           )}
         </div>

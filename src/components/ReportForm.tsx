@@ -49,11 +49,7 @@ export default function ReportForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth.currentUser) {
-      toast.error('Please sign in to submit a report');
-      return;
-    }
-
+    
     if (!formData.officeName) {
       toast.error('Please select an office');
       return;

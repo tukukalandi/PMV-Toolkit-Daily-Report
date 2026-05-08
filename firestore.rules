@@ -21,29 +21,29 @@ service cloud.firestore {
     }
 
     function isValidReport(data) {
-      return data.keys().hasAll(['officeName', 'openingBalance', 'articlesReceived', 'articlesDelivered', 'articlesPending', 'reportDate', 'createdAt', 'updatedAt'])
+      return data.keys().hasAll(['officeName', 'openingBalance', 'articlesReceived', 'articlesDelivered', 'articlesPending', 'reportDate', 'createdAt', 'updatedAt', 'pendingReason'])
         && data.officeName is string && data.officeName.size() <= 200
         && data.openingBalance is number && data.openingBalance >= 0
         && data.articlesReceived is number && data.articlesReceived >= 0
         && data.articlesDelivered is number && data.articlesDelivered >= 0
         && data.articlesPending is number
-        && data.reportDate is string && data.reportDate.size() <= 10
-        && (data.get('pendingReason', '') is string)
+        && data.reportDate is string && data.reportDate.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.pendingReason is string
         && data.createdAt == request.time
         && data.updatedAt == request.time;
     }
 
-    // Default deny
+    // Default deny for all other collections
     match /{document=**} {
       allow read, write: if false;
     }
 
     match /reports/{reportId} {
-      allow create: if (isValidReport(request.resource.data) && isSignedIn()) || isAdmin();
+      // Allow anyone to create valid reports and check for duplicates/balances
+      allow create: if isValidReport(request.resource.data) || isAdmin();
+      allow read, list: if true;
       
-      // Allow signed in users to read and list (needed for fetchLatestBalance)
-      allow read, list: if isSignedIn();
-
+      // Protect sensitive operations
       allow update, delete: if isAdmin();
     }
   }

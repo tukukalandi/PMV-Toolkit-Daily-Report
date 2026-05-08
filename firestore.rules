@@ -21,7 +21,7 @@ service cloud.firestore {
     }
 
     function isValidReport(data) {
-      return data.keys().hasAll(['officeName', 'openingBalance', 'articlesReceived', 'articlesDelivered', 'articlesPending', 'reportDate', 'createdAt', 'updatedAt'])
+      return data.keys().hasAll(['officeName', 'openingBalance', 'articlesReceived', 'articlesDelivered', 'articlesPending', 'reportDate', 'createdAt', 'updatedAt', 'createdByEmail'])
         && data.officeName is string && data.officeName.size() <= 200
         && data.openingBalance is number && data.openingBalance >= 0
         && data.articlesReceived is number && data.articlesReceived >= 0
@@ -29,6 +29,7 @@ service cloud.firestore {
         && data.articlesPending is number
         && data.reportDate is string && data.reportDate.size() <= 10
         && (data.get('pendingReason', '') is string)
+        && data.createdByEmail is string
         && data.createdAt == request.time
         && data.updatedAt == request.time;
     }
@@ -39,10 +40,11 @@ service cloud.firestore {
     }
 
     match /reports/{reportId} {
-      allow create: if isValidReport(request.resource.data);
+      allow create: if isValidReport(request.resource.data) && 
+                      request.resource.data.createdByEmail == request.auth.token.email;
       
-      // Allow public read and list so fetchLatestBalance works for users
-      allow read, list: if true;
+      // Allow signed in users to read and list (needed for fetchLatestBalance and personal history)
+      allow read, list: if isSignedIn();
 
       allow update, delete: if isAdmin();
     }

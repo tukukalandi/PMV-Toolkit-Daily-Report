@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { LogIn, LogOut, FileText, History, Package } from 'lucide-react';
 import ReportForm from './components/ReportForm';
 import ReportList from './components/ReportList';
+import UserSubmissions from './components/UserSubmissions';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -119,47 +120,33 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Tabs defaultValue="submit" className="space-y-8">
-          {isAdmin && (
-            <div className="flex justify-center">
-              <TabsList className="bg-slate-200/50 p-1 border border-slate-300/50 rounded-xl">
-                <TabsTrigger 
-                  value="submit" 
-                  className="data-[state=active]:bg-indiapost-red data-[state=active]:text-white data-[state=active]:shadow-lg gap-2 px-8 py-2.5 rounded-lg transition-all"
-                >
-                  <FileText className="w-4 h-4" />
-                  Submission Form
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="history" 
-                  className="data-[state=active]:bg-indiapost-red data-[state=active]:text-white data-[state=active]:shadow-lg gap-2 px-8 py-2.5 rounded-lg transition-all"
-                >
-                  <History className="w-4 h-4" />
-                  Admin Dashboard
-                </TabsTrigger>
-              </TabsList>
-            </div>
-          )}
+          <div className="flex justify-center">
+            <TabsList className="bg-slate-200/50 p-1 border border-slate-300/50 rounded-xl">
+              <TabsTrigger 
+                value="submit" 
+                className="data-[state=active]:bg-indiapost-red data-[state=active]:text-white data-[state=active]:shadow-lg gap-2 px-8 py-2.5 rounded-lg transition-all"
+              >
+                <FileText className="w-4 h-4" />
+                Submission Form
+              </TabsTrigger>
+              <TabsTrigger 
+                value="history" 
+                className="data-[state=active]:bg-indiapost-red data-[state=active]:text-white data-[state=active]:shadow-lg gap-2 px-8 py-2.5 rounded-lg transition-all"
+              >
+                <History className="w-4 h-4" />
+                {isAdmin ? 'Admin Dashboard' : 'My Submissions'}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <AnimatePresence mode="wait">
             <TabsContent value="submit" key="tab-submit">
               <ReportForm />
             </TabsContent>
             
-            {isAdmin && (
-              <TabsContent value="history" key="tab-history">
-                <ReportList />
-              </TabsContent>
-            )}
-
-            {!isAdmin && (
-              <TabsContent value="history" key="unauthorized">
-                <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-                  <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-slate-400">Restricted Area</h2>
-                  <p className="text-slate-400 mt-2">Only administrators can view the report history.</p>
-                </div>
-              </TabsContent>
-            )}
+            <TabsContent value="history" key="tab-history">
+              {isAdmin ? <ReportList /> : <UserSubmissions />}
+            </TabsContent>
           </AnimatePresence>
         </Tabs>
       </main>

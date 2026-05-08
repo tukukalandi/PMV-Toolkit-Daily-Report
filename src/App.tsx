@@ -12,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { LogIn, LogOut, FileText, History, Package } from 'lucide-react';
 import ReportForm from './components/ReportForm';
 import ReportList from './components/ReportList';
-import UserSubmissions from './components/UserSubmissions';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -129,13 +128,15 @@ export default function App() {
                 <FileText className="w-4 h-4" />
                 Submission Form
               </TabsTrigger>
-              <TabsTrigger 
-                value="history" 
-                className="data-[state=active]:bg-indiapost-red data-[state=active]:text-white data-[state=active]:shadow-lg gap-2 px-8 py-2.5 rounded-lg transition-all"
-              >
-                <History className="w-4 h-4" />
-                {isAdmin ? 'Admin Dashboard' : 'My Submissions'}
-              </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger 
+                  value="history" 
+                  className="data-[state=active]:bg-indiapost-red data-[state=active]:text-white data-[state=active]:shadow-lg gap-2 px-8 py-2.5 rounded-lg transition-all"
+                >
+                  <History className="w-4 h-4" />
+                  Admin Dashboard
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
@@ -144,9 +145,11 @@ export default function App() {
               <ReportForm />
             </TabsContent>
             
-            <TabsContent value="history" key="tab-history">
-              {isAdmin ? <ReportList /> : <UserSubmissions />}
-            </TabsContent>
+            {isAdmin && (
+              <TabsContent value="history" key="tab-history">
+                <ReportList />
+              </TabsContent>
+            )}
           </AnimatePresence>
         </Tabs>
       </main>

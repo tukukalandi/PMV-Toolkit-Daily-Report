@@ -136,7 +136,6 @@ export default function ReportForm() {
         articlesPending,
         pendingReason: formData.pendingReason,
         reportDate: formData.reportDate,
-        createdByEmail: auth.currentUser?.email || 'anonymous',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

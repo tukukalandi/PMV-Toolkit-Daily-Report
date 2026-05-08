@@ -40,8 +40,8 @@ service cloud.firestore {
     }
 
     match /reports/{reportId} {
-      allow create: if isValidReport(request.resource.data) && 
-                      request.resource.data.createdByEmail == request.auth.token.email;
+      allow create: if (isValidReport(request.resource.data) && 
+                      (request.resource.data.createdByEmail == request.auth.token.email || isAdmin())) || isAdmin();
       
       // Allow signed in users to read and list (needed for fetchLatestBalance and personal history)
       allow read, list: if isSignedIn();

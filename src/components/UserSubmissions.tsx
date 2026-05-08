@@ -6,6 +6,7 @@ import { PMVReport } from '../types/report';
 import { Card } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Search, Loader2, ClipboardCheck } from 'lucide-react';
+import { toast } from 'sonner';
 import { formatDateToDMY } from '../lib/dateUtils';
 
 export default function UserSubmissions() {
@@ -30,7 +31,10 @@ export default function UserSubmissions() {
       })) as PMVReport[];
       setReports(data);
       setLoading(false);
-    }, (error) => {
+    }, (error: any) => {
+      console.error("User submissions fetch error:", error);
+      const message = error.message ? (error.message.startsWith('{') ? JSON.parse(error.message).error : error.message) : 'Unknown error occurred';
+      toast.error(`History fetch failed: ${message}`);
       handleFirestoreError(error, OperationType.LIST, path);
       setLoading(false);
     });

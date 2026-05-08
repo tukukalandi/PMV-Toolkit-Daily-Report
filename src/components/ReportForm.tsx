@@ -90,9 +90,9 @@ export default function ReportForm() {
     setLoading(true);
     const path = 'reports';
     try {
-      const openingBalance = Number(formData.openingBalance);
-      const articlesReceived = Number(formData.articlesReceived);
-      const articlesDelivered = Number(formData.articlesDelivered);
+      const openingBalance = Math.max(0, parseInt(formData.openingBalance) || 0);
+      const articlesReceived = Math.max(0, parseInt(formData.articlesReceived) || 0);
+      const articlesDelivered = Math.max(0, parseInt(formData.articlesDelivered) || 0);
       const articlesPending = openingBalance + articlesReceived - articlesDelivered;
 
       if (articlesPending < 0) {
@@ -150,7 +150,10 @@ export default function ReportForm() {
         pendingReason: '',
         reportDate: new Date().toISOString().split('T')[0],
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      const message = error.message ? (error.message.startsWith('{') ? JSON.parse(error.message).error : error.message) : 'Unknown error occurred';
+      toast.error(`Submission failed: ${message}`);
       handleFirestoreError(error, OperationType.WRITE, path);
     } finally {
       setLoading(false);
